@@ -102,7 +102,7 @@ module Logic =
 
 type ICandleStorageService =
     abstract UpdateCandleAsync: Candle -> Task
-    abstract AddCandleAsync: Candle -> Task
+    abstract AddCandleAsync: DbCandle -> Task
     abstract FetchCandlesAsync: 
         pairId: int64 ->
         resolutionSeconds: int ->
