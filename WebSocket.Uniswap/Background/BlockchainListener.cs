@@ -55,11 +55,11 @@ namespace WebSocket.Uniswap.Background
 
             var connection = _sqlConnectionProvider.GetConnection();
 
-            /*Task.Run(async () =>
+            Task.Run(async () =>
             {
 
                 foreach(var candle in Logic2.newCandles(_web3, _logger, connection,
-                    lastBlockNumberInBlockchain)
+                    lastBlockNumberInBlockchain))
                 {
                     var pair = await _candleStorageService.FetchPairAsync(candle.pair.token0Id, candle.pair.token1Id);
                     DbCandle dbCandle = new((long)candle.datetime, candle.resolution,
@@ -67,7 +67,7 @@ namespace WebSocket.Uniswap.Background
                     await _candleStorageService.AddCandleAsync(dbCandle);
                     WebSocketConnection.OnCandleUpdateReceived((pair.Value, dbCandle));
                 }
-            });*/
+            });
             
             Task.Run(async () =>
             {
