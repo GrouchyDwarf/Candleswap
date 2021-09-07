@@ -55,11 +55,11 @@ namespace WebSocket.Uniswap.Background
 
             var connection = _sqlConnectionProvider.GetConnection();
 
-            Task.Run(async () =>
+            /*Task.Run(async () =>
             {
 
                 foreach(var candle in Logic2.newCandles(_web3, _logger, connection,
-                    lastBlockNumberInBlockchain/*, (FSharpFunc<List<Logic2.Candle>, Task>)OnCandlesUpdateGet*/))
+                    lastBlockNumberInBlockchain)
                 {
                     var pair = await _candleStorageService.FetchPairAsync(candle.pair.token0Id, candle.pair.token1Id);
                     DbCandle dbCandle = new((long)candle.datetime, candle.resolution,
@@ -67,8 +67,8 @@ namespace WebSocket.Uniswap.Background
                     await _candleStorageService.AddCandleAsync(dbCandle);
                     WebSocketConnection.OnCandleUpdateReceived((pair.Value, dbCandle));
                 }
-            });
-            /*
+            });*/
+            
             Task.Run(async () =>
             {
                 foreach (var c in Logic2.oldCandles(_web3, _logger, connection, lastBlockNumberInBlockchain))
@@ -78,7 +78,7 @@ namespace WebSocket.Uniswap.Background
                         pair.Value.id, c._open.ToString(), c.high.ToString(), c.low.ToString(), c.close.ToString(), (int)c.volume);
                     await _candleStorageService.AddCandleAsync(dbCandle);
                 }
-            });*/
+            });
 
 
             //var pancakeLauchDateTimestamp = new DateTime(2020, 9, 20, 0, 0, 0);

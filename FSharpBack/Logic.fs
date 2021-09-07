@@ -272,6 +272,15 @@ module Logic2 =
         then {datetime = timeStamp - BigInteger(r); pair = pair; resolution = r; _open = openPrice; high = high; low = low; volume = volume; close = closePrice}
         else {datetime = timeStamp; pair = pair; resolution = r; _open = openPrice; high = high; low = low; volume = volume; close = closePrice}
 
+    
+    let expect list itemsToExclude = 
+        list
+        |> List.filter (fun first -> 
+            itemsToExclude 
+            |> List.forall (fun second -> first.datetime <> second.datetime ||  
+                                          first.pair.token0Id <> second.pair.token0Id ||
+                                          first.pair.token1Id <> second.pair.token1Id ||
+                                          first.resolution <> second.resolution))
 
     let newCandles web logger connection blockStart (*(callback: List<Candle> -> Task)*) = 
         let rec loop (i:int) (candles:Candle list) = seq {
@@ -284,7 +293,8 @@ module Logic2 =
             let updatedCandles = 
                 pairsFromTransactions
                 |> Seq.collect(fun (pair,tr) -> 
-                    let existCandles = candles |> List.filter(fun c -> c.pair = pair)
+                    let existCandles = candles |> List.filter(fun c -> c.pair.token0Id = pair.token0Id && 
+                                                                       c.pair.token1Id = pair.token1Id)
                     let existResl = existCandles |> List.map(fun c -> c.resolution) |> List.distinct
                     let notExistResolutions = resList |> List.except existResl
 
@@ -300,9 +310,9 @@ module Logic2 =
                 )
                 |> Seq.toList
 
-            let nextCandles = updatedCandles |> List.filter(fun candle -> BigInteger(candle.resolution) + candle.datetime <= timeStamp)
+            let nextCandles = updatedCandles |> List.filter(fun candle -> BigInteger(candle.resolution) + candle.datetime > timeStamp)
             
-            let calculatedCandles = List.except nextCandles updatedCandles
+            let calculatedCandles = expect updatedCandles nextCandles
 
             yield! calculatedCandles
             yield! loop (i + 1)  nextCandles
@@ -321,12 +331,14 @@ module Logic2 =
             let timeStamp, transactions = Indexer.Logic.getTransactionsAsync web logger connection (i - 1I) |> Async.RunSynchronously
             let pairsFromTransactions = 
                 transactions
+                //|> Seq.filter(fun t -> t.token0Id.ToLower() = "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c".ToLower() && t.token1Id.ToLower() = "0x55d398326f99059ff775485246999027b3197955".ToLower())//delete
                 |> Seq.groupBy(fun tr -> {id = 0L; token0Id = tr.token0Id; token1Id = tr.token1Id})
 
             let updatedCandles = 
                 pairsFromTransactions
                 |> Seq.collect(fun (pair,tr) -> 
-                    let existCandles = candles |> List.filter(fun c -> c.pair = pair)
+                    let existCandles = candles |> List.filter(fun c -> c.pair.token0Id = pair.token0Id && 
+                                                                       c.pair.token1Id = pair.token1Id)
                     let existResl = existCandles |> List.map(fun c -> c.resolution) |> List.distinct
                     let notExistResolutions = resList |> List.except existResl
 
@@ -342,8 +354,8 @@ module Logic2 =
                 )
                 |> Seq.toList
 
-            let nextCandles = updatedCandles |> List.filter(fun candles -> candles.datetime <= timeStamp)
-            let calculatedCandles = List.except nextCandles updatedCandles 
+            let nextCandles = updatedCandles |> List.filter(fun candles -> candles.datetime < timeStamp)
+            let calculatedCandles = expect nextCandles updatedCandles 
 
             yield! calculatedCandles
             yield! loop (i - 1I)  nextCandles
