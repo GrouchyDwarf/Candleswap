@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.FSharp.Core;
 using Nethereum.Hex.HexTypes;
 using Nethereum.Web3;
+using RedDuck.Candleswap.Candles;
 using RedDuck.Candleswap.Candles.CSharp;
 using System;
 using System.Collections.Generic;
@@ -49,30 +50,34 @@ namespace WebSocket.Uniswap.Background
             //var lastBlockInBlockchain = await _web3.Eth.Blocks.GetBlockNumber.SendRequestAsync();
             var startFrom = DateTime.UtcNow;
 
-            var lastBlockNumberInBlockchain = await _logicService.GetBlockNumberByDateTimeAsync(false, startFrom);
-            var previousLastBlockNumberInBlockchain = new HexBigInteger(lastBlockNumberInBlockchain.Value - 1);
+            //var lastBlockNumberInBlockchain = await _logicService.GetBlockNumberByDateTimeAsync(false, startFrom);
+            var lastBlockNumberInBlockchain = await _web3.Eth.Blocks.GetBlockNumber.SendRequestAsync();
 
             var connection = _sqlConnectionProvider.GetConnection();
 
             Task.Run(async () =>
             {
-                foreach (var c in RedDuck.Candleswap.Candles.Logic2.newCandles(_web3, _logger, connection, lastBlockNumberInBlockchain))
+
+                foreach(var candle in Logic2.newCandles(_web3, _logger, connection,
+                    lastBlockNumberInBlockchain/*, (FSharpFunc<List<Logic2.Candle>, Task>)OnCandlesUpdateGet*/))
+                {
+                    var pair = await _candleStorageService.FetchPairAsync(candle.pair.token0Id, candle.pair.token1Id);
+                    DbCandle dbCandle = new((long)candle.datetime, candle.resolution,
+                            pair.Value.id, candle._open.ToString(), candle.high.ToString(), candle.low.ToString(), candle.close.ToString(), (int)candle.volume);
+                    await _candleStorageService.AddCandleAsync(dbCandle);
+                    WebSocketConnection.OnCandleUpdateReceived((pair.Value, dbCandle));
+                }
+            });/*
+            Task.Run(async () =>
+            {
+                foreach (var c in RedDuck.Candleswap.Candles.Logic2.oldCandles(_web3, _logger, connection, lastBlockNumberInBlockchain))
                 {
                     var pair = await _candleStorageService.FetchPairAsync(c.pair.token0Id, c.pair.token1Id);
                     DbCandle dbCandle = new((long)c.datetime, c.resolution,
                         pair.Value.id, c._open.ToString(), c.high.ToString(), c.low.ToString(), c.close.ToString(), (int)c.volume);
                     await _candleStorageService.AddCandleAsync(dbCandle);
-                    WebSocketConnection.OnCandleUpdateReceived((pair.Value, dbCandle));
                 }
-            });
-
-            foreach(var c in RedDuck.Candleswap.Candles.Logic2.oldCandles(_web3, _logger, connection, previousLastBlockNumberInBlockchain))
-            {
-                var pair = await _candleStorageService.FetchPairAsync(c.pair.token0Id, c.pair.token1Id);
-                DbCandle dbCandle = new((long)c.datetime, c.resolution,
-                    pair.Value.id, c._open.ToString(), c.high.ToString(), c.low.ToString(), c.close.ToString(), (int)c.volume);
-                await _candleStorageService.AddCandleAsync(dbCandle);
-            }
+            });*/
 
 
             //var pancakeLauchDateTimestamp = new DateTime(2020, 9, 20, 0, 0, 0);
@@ -95,6 +100,29 @@ namespace WebSocket.Uniswap.Background
 
 
         }
+
+       /* private async Task OnCandlesUpdateGet(List<Logic2.Candle> candles)
+        {
+            foreach(var candle in candles)
+            {
+                var pair = await _candleStorageService.FetchPairAsync(candle.pair.token0Id, candle.pair.token1Id);
+                DbCandle dbCandle = new((long)candle.datetime, candle.resolution,
+                        pair.Value.id, candle._open.ToString(), candle.high.ToString(), candle.low.ToString(), candle.close.ToString(), (int)candle.volume);
+                WebSocketConnection.OnCandleUpdateReceived((pair.Value, dbCandle));
+            }
+        }*/
+        /*
+         private async Task OnCalculatedCandlesGet(IEnumerable<Logic2.Candle> candles)
+         {
+            foreach (var candle in candles)
+            {
+                var pair = await _candleStorageService.FetchPairAsync(candle.pair.token0Id, candle.pair.token1Id);
+                DbCandle dbCandle = new((long)candle.datetime, candle.resolution,
+                        pair.Value.id, candle._open.ToString(), candle.high.ToString(), candle.low.ToString(), candle.close.ToString(), (int)candle.volume);
+                await _candleStorageService.AddCandleAsync(dbCandle);
+                WebSocketConnection.OnCandleUpdateReceived((pair.Value, dbCandle));
+            }
+        }*/
 
     }
 }
