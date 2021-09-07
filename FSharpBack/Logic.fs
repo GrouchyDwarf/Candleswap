@@ -236,7 +236,7 @@ module Logic2 =
     let initLow = BigDecimal.Parse maxUInt256StringRepresentation
     let initVolume = 0u
 
-    let updateCandle pair amounts isHistoricalCandle timestamp (candle:Candle) = 
+    let updateCandle pair amounts isHistoricalCandle (candle:Candle) = 
         let currentPrice (amountIn, amountOut) = BigDecimal(amountIn, 0) / BigDecimal(amountOut, 0)//tokenOut per tokenIn
         let closePrice = if isHistoricalCandle 
                          then candle.close 
@@ -253,11 +253,9 @@ module Logic2 =
             amounts
             |> Seq.map currentPrice
             |> Seq.fold folder (candle.high, candle.low, candle.volume)
-        if isHistoricalCandle
-        then {datetime = timestamp; pair = pair; resolution = candle.resolution; _open = openPrice; high = high; low = low; volume = volume; close = closePrice}
-        else {datetime = candle.datetime; pair = pair; resolution = candle.resolution; _open = openPrice; high = high; low = low; volume = volume; close = closePrice}
+        {datetime = candle.datetime; pair = pair; resolution = candle.resolution; _open = openPrice; high = high; low = low; volume = volume; close = closePrice}
 
-    let createCandle timeStamp pair amounts r = 
+    let createCandle timeStamp pair amounts isHistoricalCandle (r:int) = 
         let currentPrice (amountIn, amountOut) = BigDecimal(amountIn, 0) / BigDecimal(amountOut, 0)//tokenOut per tokenIn
         let openPrice = (Seq.head >> currentPrice) amounts
         let closePrice = (Seq.last >> currentPrice) amounts
@@ -270,8 +268,9 @@ module Logic2 =
             amounts
             |> Seq.map currentPrice
             |> Seq.fold folder (initHigh, initLow, initVolume)
-
-        {datetime = timeStamp; pair = pair; resolution = r; _open = openPrice; high = high; low = low; volume = volume; close = closePrice}
+        if isHistoricalCandle
+        then {datetime = timeStamp - BigInteger(r); pair = pair; resolution = r; _open = openPrice; high = high; low = low; volume = volume; close = closePrice}
+        else {datetime = timeStamp; pair = pair; resolution = r; _open = openPrice; high = high; low = low; volume = volume; close = closePrice}
 
 
     let newCandles web logger connection blockStart (*(callback: List<Candle> -> Task)*) = 
@@ -295,13 +294,13 @@ module Logic2 =
                             let aout = HexBigInteger tr.amountOut
                             ain.Value, aout.Value
                         ) |> Seq.toList
-                    let newCandles = notExistResolutions |> List.map(createCandle timeStamp pair amounts )
-                    let updatedCandles = existCandles |> List.map(updateCandle pair amounts false timeStamp)
+                    let newCandles = notExistResolutions |> List.map(createCandle timeStamp pair amounts false)
+                    let updatedCandles = existCandles |> List.map(updateCandle pair amounts false)
                     newCandles @ updatedCandles
                 )
                 |> Seq.toList
 
-            let nextCandles = updatedCandles |> List.filter(fun candle -> BigInteger(candle.resolution) + candle.datetime > timeStamp)
+            let nextCandles = updatedCandles |> List.filter(fun candle -> BigInteger(candle.resolution) + candle.datetime <= timeStamp)
             
             let calculatedCandles = List.except nextCandles updatedCandles
 
@@ -337,13 +336,13 @@ module Logic2 =
                             let aout = HexBigInteger tr.amountOut
                             ain.Value, aout.Value
                         ) |> Seq.toList
-                    let newCandles = notExistResolutions |> List.map(createCandle timeStamp pair amounts )
-                    let updatedCandles = existCandles |> List.map(updateCandle pair amounts true timeStamp)
+                    let newCandles = notExistResolutions |> List.map(createCandle timeStamp pair amounts true)
+                    let updatedCandles = existCandles |> List.map(updateCandle pair amounts true)
                     newCandles @ updatedCandles
                 )
                 |> Seq.toList
 
-            let nextCandles = updatedCandles |> List.filter(fun candles -> candles.datetime - BigInteger(candles.resolution) < timeStamp)
+            let nextCandles = updatedCandles |> List.filter(fun candles -> candles.datetime <= timeStamp)
             let calculatedCandles = List.except nextCandles updatedCandles 
 
             yield! calculatedCandles

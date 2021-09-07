@@ -67,10 +67,11 @@ namespace WebSocket.Uniswap.Background
                     await _candleStorageService.AddCandleAsync(dbCandle);
                     WebSocketConnection.OnCandleUpdateReceived((pair.Value, dbCandle));
                 }
-            });/*
+            });
+            /*
             Task.Run(async () =>
             {
-                foreach (var c in RedDuck.Candleswap.Candles.Logic2.oldCandles(_web3, _logger, connection, lastBlockNumberInBlockchain))
+                foreach (var c in Logic2.oldCandles(_web3, _logger, connection, lastBlockNumberInBlockchain))
                 {
                     var pair = await _candleStorageService.FetchPairAsync(c.pair.token0Id, c.pair.token1Id);
                     DbCandle dbCandle = new((long)c.datetime, c.resolution,
