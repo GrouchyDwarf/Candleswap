@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <UserSecretsId>7cc10a46-25ad-4dbe-b8e5-da563c14e243</UserSecretsId>
+	<AllowUntrustedCertificate>true</AllowUntrustedCertificate>
   </PropertyGroup>
 
   <ItemGroup>
