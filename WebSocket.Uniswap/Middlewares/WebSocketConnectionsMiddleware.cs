@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WebSocket.Uniswap.Infrastructure;
 using WebSocket.Uniswap.Services;
+using static Domain.Types;
 
 namespace WebSocket.Uniswap.Middlewares
 {
@@ -49,13 +50,29 @@ namespace WebSocket.Uniswap.Middlewares
                     {
                         await webSocketConnection.SendAsync(message, CancellationToken.None);
                     }
-                    async void OnReceiveCandleUpdate(object sender, string candle)
+                    async void OnReceiveCandleUpdate(object sender, (Pair,DbCandle) pairWithCandle)
                     {
-                        await webSocketConnection.SendAsync(candle, CancellationToken.None);
+                        foreach (var user in WebSocketConnection.Subscriptions)
+                            foreach (var pairResolution in user.Value) {
+                                var subscriptionPair = pairResolution.Item1;
+                                var subscriptionResolution = pairResolution.Item2;
+                                var receivedPair = pairWithCandle.Item1;
+                                var receivedCandle = pairWithCandle.Item2;
+
+                                if (subscriptionPair.token0Id == receivedPair.token0Id &&
+                                    subscriptionPair.token1Id == receivedPair.token1Id &&
+                                    subscriptionResolution == receivedCandle.resolutionSeconds)
+                                {
+                                    var candleStr = $"token0Id:{receivedPair.token0Id};\ntoken1Id:{receivedPair.token1Id};\nresolutionSeconds:{subscriptionResolution};\n"
+                                                  + $"datetime:{receivedCandle.datetime};\n_open:{receivedCandle._open};\nlow:{receivedCandle.low};\nhigh:{receivedCandle.high};\n"
+                                                  + $"close:{receivedCandle.close};\nvolume:{receivedCandle.volume};";
+                                    await webSocketConnection.SendAsync(candleStr, CancellationToken.None);
+                                }
+                            }
                     }
 
                     webSocketConnection.ReceiveText += OnReceiveText;
-                    webSocketConnection.ReceiveCandleUpdate += OnReceiveCandleUpdate;
+                    WebSocketConnection.ReceiveCandleUpdate += OnReceiveCandleUpdate;
                     _connectionsService.AddConnection(webSocketConnection);
 
                     var cancelReceiveMessages = new CancellationTokenSource();
@@ -67,7 +84,7 @@ namespace WebSocket.Uniswap.Middlewares
                         await webSocket.CloseAsync(webSocketConnection.CloseStatus.Value, webSocketConnection.CloseStatusDescription, CancellationToken.None);
                     }
 
-                    webSocketConnection.ReceiveCandleUpdate -= OnReceiveCandleUpdate;
+                    WebSocketConnection.ReceiveCandleUpdate -= OnReceiveCandleUpdate;
                     webSocketConnection.ReceiveText -= OnReceiveText;
                     _connectionsService.RemoveConnection(webSocketConnection.Id);
 

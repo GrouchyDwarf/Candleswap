@@ -7,28 +7,21 @@
 
   <ItemGroup>
     <Compile Include="Utils.fs" />
-    <Compile Include="Types.fs" />
-    <Compile Include="Db.fs" />
-    <Compile Include="Dater.fs" />
-    <Compile Include="UniswapSwapRouterV3.fs" />
-    <Compile Include="SwapRouterV2.fs" />
-    <Compile Include="UniswapExchangeV1.fs" />
     <Compile Include="Logic.fs" />
     <Compile Include="CSharp.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
-  <ItemGroup />
-
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.78" />
     <PackageReference Include="FSharp.Data.GraphQL.Client" Version="1.0.7" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="5.0.0" />
-    <PackageReference Include="Nethereum.ABI" Version="3.8.0" />
-    <PackageReference Include="Nethereum.Web3" Version="3.8.0" />
+    <PackageReference Include="Nethereum.Web3" Version="4.0.5" />
     <PackageReference Include="SolidityProvider" Version="1.0.9" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.114.4" />
     <ProjectReference Include="..\Contracts\Contracts.fsproj" />
+    <ProjectReference Include="..\Domain\Domain.fsproj" />
+    <ProjectReference Include="..\Indexer\Indexer.fsproj" />
 	<PackageReference Update="FSharp.Core" Version="5.0.1" />
   </ItemGroup>
 

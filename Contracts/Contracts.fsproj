@@ -30,7 +30,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nethereum.Web3" Version="3.8.0" />
+    <PackageReference Include="Nethereum.Web3" Version="4.0.5" />
     <PackageReference Include="SolidityProvider" Version="1.0.9" />
   </ItemGroup>
 

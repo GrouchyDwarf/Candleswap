@@ -1,13 +1,9 @@
-DROP DATABASE IF EXISTS candleswap;
-GO
-CREATE DATABASE candleswap;
-GO
 USE candleswap;
 
 CREATE TABLE pairs(
     id BIGINT NOT NULL IDENTITY(1, 1) PRIMARY KEY,
-    token0Id VARCHAR(255) NOT NULL,
-    token1Id VARCHAR(255) NOT NULL
+    token0Id VARBINARY(20) NOT NULL,
+    token1Id VARBINARY(20) NOT NULL
 );
 
 ALTER TABLE pairs

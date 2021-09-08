@@ -1,4 +1,4 @@
-﻿namespace RedDuck.Candleswap.Candles
+﻿namespace Indexer
 
 open System
 open System.Numerics

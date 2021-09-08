@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "FSharpBack": {
+      "commandName": "Project",
+      "commandLineArgs": "\"Data Source=(localdb)\\\\MSSQLLocalDB;Initial Catalog=candleswap;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False;MultipleActiveResultSets=True\" \"50\" \"https://bsc-dataseed.binance.org/\""
+    }
+  }
+}

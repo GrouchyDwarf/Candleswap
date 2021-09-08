@@ -1,11 +1,5 @@
 {
   "dependencies": {
-    "mssql2": {
-      "type": "mssql",
-      "connectionId": "ConnectionStrings:Default",
-      "suggestion": "true",
-      "ignored": "true"
-    },
     "mssql1": {
       "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/candleswap-server/databases/Candleswap-DB",
       "type": "mssql.azure",

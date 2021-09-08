@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <WarnOn>3390;$(WarnOn)</WarnOn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Dater.fs" />
+    <Compile Include="UniswapExchangeV1.fs" />
+    <Compile Include="UniswapSwapRouterV3.fs" />
+    <Compile Include="SwapRouterV2.fs" />
+    <Compile Include="Indexer.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Nethereum.Web3" Version="4.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Contracts\Contracts.fsproj" />
+    <ProjectReference Include="..\Domain\Domain.fsproj" />
+  </ItemGroup>
+
+</Project>

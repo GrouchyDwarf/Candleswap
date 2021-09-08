@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using RedDuck.Candleswap.Candles;
 using RedDuck.Candleswap.Candles.CSharp;
+using WebSocket.Uniswap.Helpers;
 
 namespace WebSocket.Uniswap.Controllers
 {
@@ -11,11 +12,11 @@ namespace WebSocket.Uniswap.Controllers
     [ApiController]
     public class CandlesController : ControllerBase
     {
-        private readonly ICandleStorageService candleStorage;
+        private readonly ICandleStorageService _candleStorage;
 
         public CandlesController(ICandleStorageService candleStorage)
         {
-            this.candleStorage = candleStorage;
+            _candleStorage = candleStorage;
         }
 
         /// <summary>
@@ -48,21 +49,22 @@ namespace WebSocket.Uniswap.Controllers
                 return BadRequest("An interval should be provided");
             }
 
-            var pair = (await candleStorage.FetchPairsAsync()).FirstOrDefault(pair => token0Id == pair.token0Id && 
-                                                                                      token1Id == pair.token1Id);
+            var pair = await CandleStorageHelper.GetPairAsync(_candleStorage, token0Id, token1Id);
             if (pair == null)
                 return BadRequest("There is now such pair");
 
+            if (limit > 3000)
+                return BadRequest("Limit max = 3000");
+
             startTime ??= new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds() - 60;
             endTime ??= new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
-            limit ??= 10;
+            limit ??= 100;
 
-            var candles = await candleStorage.FetchCandlesAsync(pair.id, periodSeconds);
+            var candles = 
+                await _candleStorage.FetchCandlesAsync(pair.id, periodSeconds, startTime.Value, 
+                                                       endTime.Value, limit.Value);
 
-            return candles
-                .Where(c => c.datetime >= startTime && c.datetime <= endTime)
-                .OrderByDescending(c => c.datetime)
-                .Take(limit.Value);
+            return candles;
         }
     }
 }
