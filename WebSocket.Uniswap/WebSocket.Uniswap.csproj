@@ -20,7 +20,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FSharpBack\FSharpBack.fsproj" />
-    <ProjectReference Include="..\Indexer\Indexer.fsproj" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JsonSchema="" properties_4launchsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>

@@ -282,10 +282,10 @@ module Logic2 =
                                           first.pair.token1Id <> second.pair.token1Id ||
                                           first.resolution <> second.resolution))
 
-    let newCandles web logger connection blockStart (*(callback: List<Candle> -> Task)*) = 
+    let newCandles web logger  blockStart (*(callback: List<Candle> -> Task)*) = 
         let rec loop (i:int) (candles:Candle list) = seq {
 
-            let timeStamp, transactions = Indexer.Logic.getTransactionsAsync web logger connection (blockStart + BigInteger(i)) |> Async.RunSynchronously
+            let timeStamp, transactions = Indexer.Logic.getTransactionsAsync web logger (blockStart + BigInteger(i)) |> Async.RunSynchronously
 
             let closedCandles = candles |> List.filter(fun candles -> BigInteger(candles.resolution) + candles.datetime <= timeStamp)
             yield! closedCandles
@@ -360,86 +360,86 @@ module Logic2 =
 
         loop 0 []
 
-    let oldCandles web logger connection blockStart = 
-        let pancakeDeployBlockNumber = 629407
+    //let oldCandles web logger connection blockStart = 
+    //    let pancakeDeployBlockNumber = 629407
         
-        let rec loop (i:BigInteger) (candles:Candle list) = seq {      
-            if i = (pancakeDeployBlockNumber |> BigInteger)
-            then yield! []
-            else
-            let timeStamp, transactions = Indexer.Logic.getTransactionsAsync web logger connection (i - 1I) |> Async.RunSynchronously
+    //    let rec loop (i:BigInteger) (candles:Candle list) = seq {      
+    //        if i = (pancakeDeployBlockNumber |> BigInteger)
+    //        then yield! []
+    //        else
+    //        let timeStamp, transactions = Indexer.Logic.getTransactionsAsync web logger connection (i - 1I) |> Async.RunSynchronously
 
-            let closedCandles = candles |> List.filter(fun candles -> candles.datetime > timeStamp)
-            yield! closedCandles
+    //        let closedCandles = candles |> List.filter(fun candles -> candles.datetime > timeStamp)
+    //        yield! closedCandles
 
-            let nextCandles = candles |> List.filter(fun candles -> candles.datetime <= timeStamp)
+    //        let nextCandles = candles |> List.filter(fun candles -> candles.datetime <= timeStamp)
 
-            let pairsFromTransactions = 
-                transactions
-                |> Seq.groupBy(fun tr -> {id = 0L; token0Id = tr.token0Id; token1Id = tr.token1Id})
+    //        let pairsFromTransactions = 
+    //            transactions
+    //            |> Seq.groupBy(fun tr -> {id = 0L; token0Id = tr.token0Id; token1Id = tr.token1Id})
 
-            let transactionsForExistCandles =
-                pairsFromTransactions
-                |> Seq.filter(fun (pair,_) -> 
-                        nextCandles 
-                        |> List.exists(fun c -> 
-                            c.pair.token0Id = pair.token0Id && c.pair.token1Id = pair.token1Id 
-                        )
-                )
+    //        let transactionsForExistCandles =
+    //            pairsFromTransactions
+    //            |> Seq.filter(fun (pair,_) -> 
+    //                    nextCandles 
+    //                    |> List.exists(fun c -> 
+    //                        c.pair.token0Id = pair.token0Id && c.pair.token1Id = pair.token1Id 
+    //                    )
+    //            )
 
-            // pairs that are both transactions and candles
-            let pairesForExistCandles = transactionsForExistCandles |> Seq.map(fun (p, _) -> p) |> Seq.toList
-            let notChangeCandles =
-                nextCandles
-                |> Seq.filter(fun c -> pairesForExistCandles |> List.exists(fun p -> c.pair = p) |> not)
-                |> Seq.toList 
+    //        // pairs that are both transactions and candles
+    //        let pairesForExistCandles = transactionsForExistCandles |> Seq.map(fun (p, _) -> p) |> Seq.toList
+    //        let notChangeCandles =
+    //            nextCandles
+    //            |> Seq.filter(fun c -> pairesForExistCandles |> List.exists(fun p -> c.pair = p) |> not)
+    //            |> Seq.toList 
 
 
-            let newTransactions =
-                pairsFromTransactions
-                |> Seq.filter(fun (pair,_) -> nextCandles |> List.exists(fun c -> c.pair = pair ) |> not )
+    //        let newTransactions =
+    //            pairsFromTransactions
+    //            |> Seq.filter(fun (pair,_) -> nextCandles |> List.exists(fun c -> c.pair = pair ) |> not )
 
-            let updatedCandles = 
-                transactionsForExistCandles
-                |> Seq.collect(fun (pair,tr) -> 
-                    let existCandles = 
-                        nextCandles |> List.filter(fun c -> c.pair.token0Id = pair.token0Id && 
-                                                            c.pair.token1Id = pair.token1Id)
-                    let existResl = existCandles |> List.map(fun c -> c.resolution) |> List.distinct
-                    let notExistResolutions = resList |> List.except existResl
+    //        let updatedCandles = 
+    //            transactionsForExistCandles
+    //            |> Seq.collect(fun (pair,tr) -> 
+    //                let existCandles = 
+    //                    nextCandles |> List.filter(fun c -> c.pair.token0Id = pair.token0Id && 
+    //                                                        c.pair.token1Id = pair.token1Id)
+    //                let existResl = existCandles |> List.map(fun c -> c.resolution) |> List.distinct
+    //                let notExistResolutions = resList |> List.except existResl
 
-                    let amounts = 
-                        tr |> Seq.map(fun tr -> 
-                            let ain = HexBigInteger tr.amountIn 
-                            let aout = HexBigInteger tr.amountOut
-                            ain.Value, aout.Value
-                        ) |> Seq.toList
-                    let newCandles = notExistResolutions |> List.map(createCandle timeStamp pair amounts true)
-                    let updatedCandles = existCandles |> List.map(updateCandle pair amounts true)
-                    newCandles @ updatedCandles
-                )
-                |> Seq.toList
+    //                let amounts = 
+    //                    tr |> Seq.map(fun tr -> 
+    //                        let ain = HexBigInteger tr.amountIn 
+    //                        let aout = HexBigInteger tr.amountOut
+    //                        ain.Value, aout.Value
+    //                    ) |> Seq.toList
+    //                let newCandles = notExistResolutions |> List.map(createCandle timeStamp pair amounts true)
+    //                let updatedCandles = existCandles |> List.map(updateCandle pair amounts true)
+    //                newCandles @ updatedCandles
+    //            )
+    //            |> Seq.toList
 
-            let newCandles = 
-                newTransactions
-                |> Seq.collect(fun (pair,tr) -> 
-                    let amounts = 
-                        tr |> Seq.map(fun tr -> 
-                            let ain = HexBigInteger tr.amountIn 
-                            let aout = HexBigInteger tr.amountOut
-                            ain.Value, aout.Value
-                        ) |> Seq.toList
-                    let newCandles = resList |> List.map(createCandle timeStamp pair amounts true)
-                    newCandles
-                )
-                |> Seq.toList
+    //        let newCandles = 
+    //            newTransactions
+    //            |> Seq.collect(fun (pair,tr) -> 
+    //                let amounts = 
+    //                    tr |> Seq.map(fun tr -> 
+    //                        let ain = HexBigInteger tr.amountIn 
+    //                        let aout = HexBigInteger tr.amountOut
+    //                        ain.Value, aout.Value
+    //                    ) |> Seq.toList
+    //                let newCandles = resList |> List.map(createCandle timeStamp pair amounts true)
+    //                newCandles
+    //            )
+    //            |> Seq.toList
 
-            let all = notChangeCandles @ updatedCandles @ newCandles
+    //        let all = notChangeCandles @ updatedCandles @ newCandles
 
-            yield! loop (i - 1I)  all
+    //        yield! loop (i - 1I)  all
              
-        }
-        loop blockStart []
+    //    }
+    //    loop blockStart []
 
 
         

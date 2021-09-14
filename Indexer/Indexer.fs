@@ -113,7 +113,7 @@ module Logic =
                                                 token1Id = token1Id}
         }                                  
 
-    let getTransactionsAsync (web3:IWeb3) (logger:ILogger) (connection:SqlConnection) (blockNumber:BigInteger) =
+    let getTransactionsAsync (web3:IWeb3) (logger:ILogger) (blockNumber:BigInteger) =
         let filterSwapTransactions transactions =
             transactions
             |> Array.filter
@@ -208,10 +208,6 @@ module Logic =
                       nonce = transaction.Nonce.HexValue}
                 )
 
-            for transaction in transactions do  
-                do! Db.addPairAsync connection {id = 0L
-                                                token0Id = transaction.token0Id
-                                                token1Id = transaction.token1Id}
 
             return block.Timestamp.Value, transactions
 

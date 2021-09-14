@@ -41,18 +41,18 @@ namespace WebSocket.Uniswap
 
             services.AddSingleton<IHostedService, HeartbeatService>();
 
-            services.AddSingleton<ISqlConnectionProvider, SqlConnectionProvider>();
+            //services.AddSingleton<ISqlConnectionProvider, SqlConnectionProvider>();
             services.AddTransient<ILogicService, LogicService>();
             services.AddSingleton<IWeb3>(new Web3("https://bsc-dataseed.binance.org/"));
 
 
             services.AddTransient<ICandleStorageService, CandleStorageService>();
-            services.AddSingleton<IIndexerService, IndexerService>(sp => 
-                new IndexerService(sp.GetService<IWeb3>(), sp.GetService<ISqlConnectionProvider>(),
-                                   sp.GetService<ILogger<BlockchainListener>>()));
+            //services.AddSingleton<IIndexerService, IndexerService>(sp => 
+            //    new IndexerService(sp.GetService<IWeb3>(), sp.GetService<ISqlConnectionProvider>(),
+            //                       sp.GetService<ILogger<BlockchainListener>>()));
 
-            services.AddSingleton<IDictionary<(Pair, int), CancellationTokenSource>>(
-                _ => new Dictionary<(Pair, int), CancellationTokenSource>());
+            //services.AddSingleton<IDictionary<(Pair, int), CancellationTokenSource>>(
+            //    _ => new Dictionary<(Pair, int), CancellationTokenSource>());
 
             services.AddHostedService<BlockchainListener>();
 

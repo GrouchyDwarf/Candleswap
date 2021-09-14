@@ -19,24 +19,13 @@ namespace WebSocket.Uniswap.Background
     public class BlockchainListener: BackgroundService
     {
         private readonly ILogger<BlockchainListener> _logger;
-        private readonly ILogicService _logicService;
-        private readonly IIndexerService _indexerService;
-        private readonly ICandleStorageService _candleStorageService;
         private readonly IWeb3 _web3;
-        private readonly ISqlConnectionProvider _sqlConnectionProvider;
 
-        private readonly int[] _defaultPeriods = { 15, 60, 600 };
 
-        public BlockchainListener(ILogger<BlockchainListener> logger, ILogicService logicService,
-                                  IIndexerService indexerService, IWeb3 web3, ICandleStorageService candleStorageService,
-                                  ISqlConnectionProvider sqlConnectionProvider)
+        public BlockchainListener(ILogger<BlockchainListener> logger, IWeb3 web3)
         {
             _logger = logger;
-            _logicService = logicService;
-            _indexerService = indexerService;
             _web3 = web3;
-            _candleStorageService = candleStorageService;
-            _sqlConnectionProvider = sqlConnectionProvider;
         }
 
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
@@ -47,40 +36,17 @@ namespace WebSocket.Uniswap.Background
 
         private async Task DoWork(CancellationToken cancellationToken)
         {
-            //var lastBlockInBlockchain = await _web3.Eth.Blocks.GetBlockNumber.SendRequestAsync();
-            var startFrom = DateTime.UtcNow;
-
             //var lastBlockNumberInBlockchain = await _logicService.GetBlockNumberByDateTimeAsync(false, startFrom);
             var lastBlockNumberInBlockchain = await _web3.Eth.Blocks.GetBlockNumber.SendRequestAsync();
 
-            var connection = _sqlConnectionProvider.GetConnection();
 
-            Task.Run(async () =>
+            foreach(var candle in Logic2.newCandles(_web3, _logger, lastBlockNumberInBlockchain))
             {
-
-                foreach(var candle in Logic2.newCandles(_web3, _logger, connection,
-                    lastBlockNumberInBlockchain))
-                {
-                    var pair = await _candleStorageService.FetchPairAsync(candle.pair.token0Id, candle.pair.token1Id);
-                    DbCandle dbCandle = new((long)candle.datetime, candle.resolution,
-                            pair.Value.id, candle._open.ToString(), candle.high.ToString(), candle.low.ToString(), candle.close.ToString(), (int)candle.volume);
-                    await _candleStorageService.AddCandleAsync(dbCandle);
-                    WebSocketConnection.OnCandleUpdateReceived((pair.Value, dbCandle));
-                }
-            });
+                DbCandle dbCandle = new((long)candle.datetime, candle.resolution,
+                        0, candle._open.ToString(), candle.high.ToString(), candle.low.ToString(), candle.close.ToString(), (int)candle.volume);
+                WebSocketConnection.OnCandleUpdateReceived((candle.pair, dbCandle));
+            }
             
-            Task.Run(async () =>
-            {
-                foreach (var c in Logic2.oldCandles(_web3, _logger, connection, lastBlockNumberInBlockchain))
-                {
-                    var pair = await _candleStorageService.FetchPairAsync(c.pair.token0Id, c.pair.token1Id);
-                    DbCandle dbCandle = new((long)c.datetime, c.resolution,
-                        pair.Value.id, c._open.ToString(), c.high.ToString(), c.low.ToString(), c.close.ToString(), (int)c.volume);
-                    await _candleStorageService.AddCandleAsync(dbCandle);
-                }
-            });
-
-
             //var pancakeLauchDateTimestamp = new DateTime(2020, 9, 20, 0, 0, 0);
 
             //_indexerService.IndexInRangeParallel(lastBlockNumberInBlockchain.Value,

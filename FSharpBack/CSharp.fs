@@ -60,30 +60,30 @@ type ILogicService =
         date: DateTime -> 
         Task<HexBigInteger>
 
-type LogicService(web3: IWeb3, sqlite: ISqlConnectionProvider) = 
+type LogicService(web3: IWeb3) = 
     let toRefTuple = fun struct (a, b) -> (a, b)
     let toStructTuple = fun (a, b) -> struct(a, b)
-    let connection = sqlite.GetConnection()
 
     interface ILogicService with
-        member _.CalculateCandlesByTransactions 
-            swapTransactions
-            = 
-            swapTransactions
-            |> Logic.calculateCandlesByTransactions connection  
-            |> Async.StartAsTask
-        
+        member _.CalculateCandlesByTransactions swapTransactions = 
+            //swapTransactions
+            //|> Logic.calculateCandlesByTransactions connection  
+            //|> Async.StartAsTask
+            raise (NotImplementedException())
+
         member _.GetCandle callback resolutionTime cancelToken =
-            let callback str = callback.Invoke(str)
-            Logic.getCandle connection web3 callback resolutionTime cancelToken |> Async.StartAsTask :> Task
+            //let callback str = callback.Invoke(str)
+            //Logic.getCandle connection web3 callback resolutionTime cancelToken |> Async.StartAsTask :> Task
+            raise (NotImplementedException())
 
         member _.GetCandles callback cancelToken period resolution = 
-            let callback str = callback.Invoke(str)
+            //let callback str = callback.Invoke(str)
             
-            let newPeriod = toRefTuple period 
+            //let newPeriod = toRefTuple period 
 
-            Logic.getCandles connection callback web3 cancelToken newPeriod resolution 
-            |> Async.StartAsTask :> Task
+            //Logic.getCandles connection callback web3 cancelToken newPeriod resolution 
+            //|> Async.StartAsTask :> Task
+            raise (NotImplementedException())
 
         member _.GetTimeSamples period rate =
             let newPeriod = toRefTuple period
@@ -115,31 +115,30 @@ type ICandleStorageService =
     abstract FetchPairAsync: string -> string -> Task<Pair option>
     abstract FetchPairOrCreateNewIfNotExists: string -> string -> Task<Pair>
 
-type CandleStorageService(sql: ISqlConnectionProvider) =
-    let connection = sql.GetConnection()
+type CandleStorageService() =
+    
     
     interface ICandleStorageService with
         member _.UpdateCandleAsync candle = 
-            Db.updateCandle connection candle |> Async.StartAsTask :> Task
+            raise (NotImplementedException())
         
         member _.AddCandleAsync candle = 
-            Db.addCandle connection candle |> Async.StartAsTask :> Task
+            raise (NotImplementedException())
         
         member _.FetchCandlesAsync pairId resolutionSeconds startTime endTime limit = 
-            Db.fetchCandles connection pairId resolutionSeconds startTime endTime limit
-            |> Async.StartAsTask
+            raise (NotImplementedException())
 
         member _.FetchPairsAsync () = 
-            Db.fetchPairsAsync connection |> Async.StartAsTask
+            raise (NotImplementedException())
 
         member _.AddPairAsync pair = 
-            Db.addPairAsync connection pair |> Async.StartAsTask :> Task
+            raise (NotImplementedException())
 
         member _.FetchPairAsync token0Id token1Id = 
-            Db.fetchPairAsync connection token0Id token1Id |> Async.StartAsTask
+            raise (NotImplementedException())
 
         member _.FetchPairOrCreateNewIfNotExists token0Id token1Id = 
-            Db.fetchPairOrCreateNewIfNotExists connection token0Id token1Id |> Async.StartAsTask
+            raise (NotImplementedException())
 
 
 type IIndexerService =
