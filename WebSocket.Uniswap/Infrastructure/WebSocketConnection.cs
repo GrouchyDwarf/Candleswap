@@ -168,7 +168,7 @@ namespace WebSocket.Uniswap.Infrastructure
                 return;
             }
             var pair = pairOption.Value;*/
-            var pair = new Pair(0, token0Id, token1Id);
+            var pair = new Pair(0, token0Id.ToLower(), token1Id.ToLower());
 
             switch (webSocketRequest.EventType)
             {

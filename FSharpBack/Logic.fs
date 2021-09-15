@@ -230,7 +230,7 @@ module Logic2 =
     type FullCandle(timeStamp: HexBigInteger, resolution: int) =
         let mutable candle = {_open = BigDecimal(); high = BigDecimal(); low = BigDecimal(); close = BigDecimal(); volume = 0u}
 
-    let resList = [10; 30; 60]
+    let resList = [10; 15; 30; 60; 180; 300; 900; 3600; 86400; 604800]
 
     let initHigh = BigDecimal(0I, 0)
     let initLow = BigDecimal.Parse maxUInt256StringRepresentation

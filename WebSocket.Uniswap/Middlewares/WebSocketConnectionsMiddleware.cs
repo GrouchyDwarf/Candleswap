@@ -52,23 +52,29 @@ namespace WebSocket.Uniswap.Middlewares
                     }
                     async void OnReceiveCandleUpdate(object sender, (Pair,DbCandle) pairWithCandle)
                     {
+                        var receivedPair = pairWithCandle.Item1;
+                        var receivedCandle = pairWithCandle.Item2;
                         foreach (var user in WebSocketConnection.Subscriptions)
-                            foreach (var pairResolution in user.Value) {
-                                var subscriptionPair = pairResolution.Item1;
-                                var subscriptionResolution = pairResolution.Item2;
-                                var receivedPair = pairWithCandle.Item1;
-                                var receivedCandle = pairWithCandle.Item2;
-
-                                if (subscriptionPair.token0Id.ToLower() == receivedPair.token0Id.ToLower() &&
-                                    subscriptionPair.token1Id.ToLower() == receivedPair.token1Id.ToLower() &&
-                                    subscriptionResolution == receivedCandle.resolutionSeconds)
+                        {
+                            if (user.Key == webSocketConnection.Id)
+                            {
+                                foreach (var pairResolution in user.Value)
                                 {
-                                    var candleStr = $"token0Id:{receivedPair.token0Id};\ntoken1Id:{receivedPair.token1Id};\nresolutionSeconds:{subscriptionResolution};\n"
-                                                  + $"datetime:{receivedCandle.datetime};\n_open:{receivedCandle._open};\nlow:{receivedCandle.low};\nhigh:{receivedCandle.high};\n"
-                                                  + $"close:{receivedCandle.close};\nvolume:{receivedCandle.volume};";
-                                    await webSocketConnection.SendAsync(candleStr, CancellationToken.None);
+                                    var subscriptionPair = pairResolution.Item1;
+                                    var subscriptionResolution = pairResolution.Item2;
+
+                                    if (subscriptionPair.token0Id.ToLower() == receivedPair.token0Id.ToLower() &&
+                                        subscriptionPair.token1Id.ToLower() == receivedPair.token1Id.ToLower() &&
+                                        subscriptionResolution == receivedCandle.resolutionSeconds)
+                                    {
+                                        var candleStr = $"token0Id:{receivedPair.token0Id};\ntoken1Id:{receivedPair.token1Id};\nresolutionSeconds:{subscriptionResolution};\n"
+                                                      + $"datetime:{receivedCandle.datetime};\n_open:{receivedCandle._open};\nlow:{receivedCandle.low};\nhigh:{receivedCandle.high};\n"
+                                                      + $"close:{receivedCandle.close};\nvolume:{receivedCandle.volume};";
+                                        await webSocketConnection.SendAsync(candleStr, CancellationToken.None);
+                                    }
                                 }
                             }
+                        }
                     }
 
                     webSocketConnection.ReceiveText += OnReceiveText;
