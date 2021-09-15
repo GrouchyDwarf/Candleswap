@@ -59,8 +59,8 @@ namespace WebSocket.Uniswap.Middlewares
                                 var receivedPair = pairWithCandle.Item1;
                                 var receivedCandle = pairWithCandle.Item2;
 
-                                if (subscriptionPair.token0Id == receivedPair.token0Id &&
-                                    subscriptionPair.token1Id == receivedPair.token1Id &&
+                                if (subscriptionPair.token0Id.ToLower() == receivedPair.token0Id.ToLower() &&
+                                    subscriptionPair.token1Id.ToLower() == receivedPair.token1Id.ToLower() &&
                                     subscriptionResolution == receivedCandle.resolutionSeconds)
                                 {
                                     var candleStr = $"token0Id:{receivedPair.token0Id};\ntoken1Id:{receivedPair.token1Id};\nresolutionSeconds:{subscriptionResolution};\n"

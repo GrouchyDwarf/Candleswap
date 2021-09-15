@@ -160,14 +160,15 @@ namespace WebSocket.Uniswap.Infrastructure
                 await SendAsync("Period should be in seconds", CancellationToken.None);
                 return;
             }
-            
-            var pairOption = await candleStorage.FetchPairAsync(token0Id, token1Id);
+
+            /*var pairOption = await candleStorage.FetchPairAsync(token0Id, token1Id);
             if (FSharpOption<Pair>.get_IsNone(pairOption))
             {
                 await SendAsync("There is no such pair", CancellationToken.None);
                 return;
             }
-            var pair = pairOption.Value;
+            var pair = pairOption.Value;*/
+            var pair = new Pair(0, token0Id, token1Id);
 
             switch (webSocketRequest.EventType)
             {
