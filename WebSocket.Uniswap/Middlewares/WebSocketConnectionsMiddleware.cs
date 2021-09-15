@@ -54,11 +54,7 @@ namespace WebSocket.Uniswap.Middlewares
                     {
                         var receivedPair = pairWithCandle.Item1;
                         var receivedCandle = pairWithCandle.Item2;
-                        foreach (var user in WebSocketConnection.Subscriptions)
-                        {
-                            if (user.Key == webSocketConnection.Id)
-                            {
-                                foreach (var pairResolution in user.Value)
+                                foreach (var pairResolution in webSocketConnection.Subscriptions)
                                 {
                                     var subscriptionPair = pairResolution.Item1;
                                     var subscriptionResolution = pairResolution.Item2;
@@ -73,8 +69,6 @@ namespace WebSocket.Uniswap.Middlewares
                                         await webSocketConnection.SendAsync(candleStr, CancellationToken.None);
                                     }
                                 }
-                            }
-                        }
                     }
 
                     webSocketConnection.ReceiveText += OnReceiveText;

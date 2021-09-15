@@ -31,14 +31,14 @@ namespace WebSocket.Uniswap.Infrastructure
 
         public static event EventHandler<(Pair, DbCandle)> ReceiveCandleUpdate;
 
-        public static readonly Dictionary<Guid, List<(Pair, int)>> Subscriptions = new();
+        public readonly List<(Pair, int)> Subscriptions = new();
 
         public WebSocketConnection(System.Net.WebSockets.WebSocket webSocket, int receivePayloadBufferSize)
         {
             _webSocket = webSocket ?? throw new ArgumentNullException(nameof(webSocket));
             _receivePayloadBufferSize = receivePayloadBufferSize;
 
-            Subscriptions.Add(Id, new List<(Pair, int)>());
+            Subscriptions = new ();
         }
 
         public Task SendAsync(string message, CancellationToken cancellationToken)
@@ -173,10 +173,10 @@ namespace WebSocket.Uniswap.Infrastructure
             switch (webSocketRequest.EventType)
             {
                 case "subscribe":
-                    Subscriptions[Id].Add((pair, period));
+                    Subscriptions.Add((pair, period));
                     break;
                 case "unsubscribe":
-                    Subscriptions[Id].Remove((pair, period));
+                    Subscriptions.Remove((pair, period));
                     break;
             }
 
